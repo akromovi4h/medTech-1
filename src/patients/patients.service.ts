@@ -31,22 +31,32 @@ export class PatientsService {
       },
     });
   }
+
   async list(query: ListPatientsDto) {
     const where: any = {};
+
+    // Kiritilgan q qidiruvi
     if (query.q) {
       where.OR = [
-        { firstname: { contains: query.q, mode: 'intensive' } },
-        { lastname: { contains: query.q, mode: 'intensive' } },
-        { phone: { contains: query.q, mode: 'intensive' } },
-        { email: { contains: query.q, mode: 'intensive' } },
+        { firstName: { contains: query.q, mode: 'insensitive' } },
+        { lastName: { contains: query.q, mode: 'insensitive' } },
+        { phone: { contains: query.q, mode: 'insensitive' } },
+        { email: { contains: query.q, mode: 'insensitive' } },
       ];
     }
-    if (query.gender)
-      where.gender = { equals: query.gender, mode: 'intensive' as any };
+
+    // Gender filteri
+    if (query.gender) {
+      where.gender = query.gender;
+    }
+
+    // Tartib
     const orderBy =
       query.sort === 'oldest'
         ? { createdAt: 'asc' as const }
-        : { updatedAt: 'desc' as const };
+        : { createdAt: 'desc' as const }; // yangi yozilganlarni oxirgi bo'lib ko'rsatish uchun
+
+    // Prisma tranzaksiyasi orqali ma'lumotlarni olish
     const [items, total] = await this.prisma.$transaction([
       this.prisma.patient.findMany({
         where,
@@ -67,6 +77,7 @@ export class PatientsService {
       }),
       this.prisma.patient.count({ where }),
     ]);
+
     return {
       total,
       offset: query.offset ?? 0,
@@ -74,6 +85,7 @@ export class PatientsService {
       items,
     };
   }
+
   async getOne(id: string) {
     const patient = await this.prisma.patient.findUnique({
       where: { id },
@@ -89,7 +101,7 @@ export class PatientsService {
         updatedAt: true,
       },
     });
-    if (!patient) throw new NotFoundException('Patients not found');
+    if (!patient) throw new NotFoundException('Patient not found');
     return patient;
   }
 
@@ -98,7 +110,7 @@ export class PatientsService {
       where: { id },
       select: { id: true },
     });
-    if (!exists) throw new NotFoundException('Patients not found');
+    if (!exists) throw new NotFoundException('Patient not found');
     return this.prisma.patient.update({
       where: { id },
       data: {
@@ -122,13 +134,14 @@ export class PatientsService {
       },
     });
   }
+
   async remove(id: string) {
     const exists = await this.prisma.patient.findUnique({
       where: { id },
       select: { id: true },
     });
-    if (!exists) throw new NotFoundException('Patients not found');
+    if (!exists) throw new NotFoundException('Patient not found');
     await this.prisma.patient.delete({ where: { id } });
-    return { message: 'Patient delete' };
+    return { message: 'Patient deleted' };
   }
 }

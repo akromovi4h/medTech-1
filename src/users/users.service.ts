@@ -143,4 +143,17 @@ export class UserService {
     await this.prisma.user.delete({ where: { id } });
     return { message: 'User deleted' };
   }
+  async getUser(id: string){
+    return this.prisma.user.findUnique({
+      where: {id},
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      }
+    })
+  }
 }

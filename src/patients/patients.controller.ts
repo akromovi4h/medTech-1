@@ -24,10 +24,10 @@ export class PatientsController {
 
   @Roles('admin', 'doctor', 'reception')
   @Get()
-  list(@Query() query: ListPatientsDto) {
+  list(@Query("id") query: ListPatientsDto) {
     return this.service.list(query);
   }
-  @Roles('admin', 'doctor')
+  @Roles('admin', 'reception', 'doctor')
   @Post()
   create(@Body() dto: CreatePatientDto) {
     return this.service.create(dto);
@@ -39,12 +39,12 @@ export class PatientsController {
   }
   @Roles('admin', 'reception')
   @Patch(':id')
-  update(@Param() id: string, @Body() dto: UpdatePatientDTO) {
+  update(@Param('id') id: string, @Body() dto: UpdatePatientDTO) {
     return this.service.update(id, dto);
   }
   @Roles('admin')
   @Delete(':id')
-  delete(@Param() id: string) {
+  delete(@Param('id') id: string) {
     return this.service.remove(id);
   }
 }
